@@ -1,138 +1,221 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Bridge Legal | Client Portal</title>
+    <title>Comp Sci Final Project | Secure Portal</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
         body {
             margin: 0;
-            font-family: "Helvetica Neue", Arial, sans-serif;
-            background-color: #f4f6f8;
-            color: #1c1c1c;
+            font-family: "Inter", Arial, sans-serif;
+            background-color: #f3f5f8;
+            color: #1a1a1a;
         }
 
-        header {
-            background-color: #0b1f3a;
+        nav {
+            background: #111827;
             color: white;
-            padding: 25px 50px;
-            font-size: 22px;
-            letter-spacing: 1px;
+            padding: 18px 40px;
+            display: flex;
+            justify-content: space-between;
             font-weight: 600;
         }
 
+        .login-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(17,24,39,0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            width: 320px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 10px;
+            margin: 15px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .login-box button {
+            width: 100%;
+            padding: 10px;
+            background: #111827;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
         .container {
-            max-width: 900px;
+            max-width: 1100px;
             margin: 60px auto;
             background: white;
             padding: 50px;
-            border-radius: 6px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+            border-radius: 10px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.08);
+            position: relative;
+        }
+
+        .watermark {
+            position: absolute;
+            bottom: 20px;
+            right: 30px;
+            font-size: 11px;
+            opacity: 0.1;
+            font-weight: 700;
+            letter-spacing: 2px;
         }
 
         h1 {
             margin-top: 0;
-            font-size: 28px;
-            font-weight: 600;
-            color: #0b1f3a;
+            color: #111827;
         }
 
-        label {
-            font-weight: 600;
-            font-size: 14px;
-            letter-spacing: 0.5px;
-            color: #333;
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
         }
 
         select {
             width: 100%;
             padding: 12px;
-            margin-top: 10px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            margin-bottom: 40px;
+        }
+
+        .section {
             margin-bottom: 30px;
-            border-radius: 4px;
-            border: 1px solid #d0d5db;
-            font-size: 15px;
-            background-color: #fafafa;
-        }
-
-        select:focus {
-            outline: none;
-            border-color: #0b1f3a;
-        }
-
-        .client-box {
-            background-color: #f9fafc;
-            padding: 25px;
-            border-left: 4px solid #b89b5e;
-            font-size: 14px;
-            line-height: 1.6;
-            white-space: pre-wrap;
-        }
-
-        footer {
-            text-align: center;
-            margin-top: 60px;
             padding: 20px;
-            font-size: 12px;
-            color: #777;
+            background: #f9fafc;
+            border-left: 4px solid #6366f1;
+            border-radius: 4px;
+        }
+
+        .section h3 {
+            margin-top: 0;
+            font-size: 16px;
+        }
+
+        .field {
+            font-size: 14px;
+            margin-bottom: 6px;
         }
 
     </style>
 </head>
-
 <body>
 
-<header>
-    BRIDGE LEGAL | CLIENT PORTAL
-</header>
+<div class="login-overlay" id="loginGate">
+    <div class="login-box">
+        <h2>Comp Sci Final Project</h2>
+        <p>Secure Access Portal</p>
+        <input type="password" id="password" placeholder="Enter Access Code">
+        <button onclick="unlock()">Access Portal</button>
+    </div>
+</div>
+
+<nav>
+    COMP SCI FINAL PROJECT | CLIENT SYSTEM
+    <span>Internal Use Only</span>
+</nav>
 
 <div class="container">
-    <h1>Select Client Record</h1>
 
-    <label for="clientSelect">CLIENT ID</label>
+    <h1>Client Record Lookup</h1>
+
+    <input type="text" id="searchInput" placeholder="Search Client ID...">
+
     <select id="clientSelect">
         <option value="">-- Select Client --</option>
     </select>
 
-    <div class="client-box" id="clientDisplay">
-        Client information will appear here.
-    </div>
+    <div id="clientDisplay"></div>
+
+    <div class="watermark">CONFIDENTIAL</div>
+
 </div>
 
-<footer>
-    © 2026 Bridge Legal. Confidential & Proprietary.
-</footer>
-
 <script>
+
+function unlock() {
+    const password = document.getElementById("password").value;
+    if (password === "final2026") {
+        document.getElementById("loginGate").style.display = "none";
+    } else {
+        alert("Invalid Access Code");
+    }
+}
+
 fetch("clients.json")
-    .then(response => response.json())
-    .then(data => {
-        const dropdown = document.getElementById("clientSelect");
-        const display = document.getElementById("clientDisplay");
+.then(response => response.json())
+.then(data => {
 
-        const firstColumn = Object.keys(data[0])[0];
+    const dropdown = document.getElementById("clientSelect");
+    const display = document.getElementById("clientDisplay");
+    const searchInput = document.getElementById("searchInput");
 
-        data.forEach(client => {
+    const firstColumn = Object.keys(data[0])[0];
+
+    function populateDropdown(filteredData) {
+        dropdown.innerHTML = '<option value="">-- Select Client --</option>';
+        filteredData.forEach(client => {
             const option = document.createElement("option");
             option.value = client[firstColumn];
             option.textContent = client[firstColumn];
             dropdown.appendChild(option);
         });
+    }
 
-        dropdown.addEventListener("change", function() {
-            const selected = data.find(c => 
-                c[firstColumn] == this.value
-            );
+    populateDropdown(data);
 
-            if (selected) {
-                display.textContent = Object.entries(selected)
-                    .map(([key, value]) => key + ": " + value)
-                    .join("\n");
-            } else {
-                display.textContent = "Client information will appear here.";
-            }
-        });
+    searchInput.addEventListener("input", function() {
+        const filtered = data.filter(client =>
+            String(client[firstColumn]).toLowerCase()
+            .includes(this.value.toLowerCase())
+        );
+        populateDropdown(filtered);
     });
+
+    dropdown.addEventListener("change", function() {
+        const selected = data.find(c => c[firstColumn] == this.value);
+        display.innerHTML = "";
+
+        if (selected) {
+            const section = document.createElement("div");
+            section.className = "section";
+
+            const header = document.createElement("h3");
+            header.textContent = "Client Details";
+            section.appendChild(header);
+
+            for (let key in selected) {
+                const field = document.createElement("div");
+                field.className = "field";
+                field.innerHTML = "<strong>" + key + ":</strong> " + selected[key];
+                section.appendChild(field);
+            }
+
+            display.appendChild(section);
+        }
+    });
+
+});
 </script>
 
 </body>
