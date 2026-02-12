@@ -1,222 +1,640 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Comp Sci Final Project | Secure Portal</title>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <title>Client Analytics Portal | Secure Access</title>
+    
     <style>
-        body {
+        * {
             margin: 0;
-            font-family: "Inter", Arial, sans-serif;
-            background-color: #f3f5f8;
-            color: #1a1a1a;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        nav {
-            background: #111827;
-            color: white;
-            padding: 18px 40px;
-            display: flex;
-            justify-content: space-between;
-            font-weight: 600;
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
         }
 
+        /* Login Overlay */
         .login-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(17,24,39,0.95);
+            background: rgba(15, 23, 42, 0.98);
+            backdrop-filter: blur(10px);
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 9999;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .login-box {
-            background: white;
-            padding: 40px;
-            border-radius: 8px;
-            width: 320px;
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 50px 40px;
+            border-radius: 16px;
+            width: 400px;
             text-align: center;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-box h2 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .login-box p {
+            color: #94a3b8;
+            margin-bottom: 30px;
+            font-size: 14px;
         }
 
         .login-box input {
             width: 100%;
-            padding: 10px;
-            margin: 15px 0;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            padding: 14px 18px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            background: rgba(15, 23, 42, 0.5);
+            color: white;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .login-box input:focus {
+            outline: none;
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
         }
 
         .login-box button {
             width: 100%;
-            padding: 10px;
-            background: #111827;
+            padding: 14px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
             cursor: pointer;
+            transition: all 0.3s ease;
         }
 
-        .container {
-            max-width: 1100px;
-            margin: 60px auto;
-            background: white;
-            padding: 50px;
-            border-radius: 10px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.08);
-            position: relative;
+        .login-box button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
         }
 
-        .watermark {
-            position: absolute;
-            bottom: 20px;
-            right: 30px;
-            font-size: 11px;
-            opacity: 0.1;
+        /* Navigation */
+        nav {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 20px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-brand {
+            font-size: 20px;
             font-weight: 700;
-            letter-spacing: 2px;
+            background: linear-gradient(90deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        h1 {
-            margin-top: 0;
-            color: #111827;
+        .nav-badge {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid rgba(239, 68, 68, 0.3);
         }
 
-        input[type="text"] {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 20px;
-            border-radius: 6px;
-            border: 1px solid #ddd;
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 0 30px;
         }
 
-        select {
-            width: 100%;
-            padding: 12px;
-            border-radius: 6px;
-            border: 1px solid #ddd;
+        /* Header Section */
+        .header-section {
             margin-bottom: 40px;
         }
 
-        .section {
-            margin-bottom: 30px;
-            padding: 20px;
-            background: #f9fafc;
-            border-left: 4px solid #6366f1;
-            border-radius: 4px;
+        .header-section h1 {
+            font-size: 42px;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        .section h3 {
-            margin-top: 0;
+        .header-section p {
+            color: #94a3b8;
             font-size: 16px;
         }
 
-        .field {
-            font-size: 14px;
+        /* Search Section */
+        .search-section {
+            background: rgba(30, 41, 59, 0.6);
+            padding: 30px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .search-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group label {
+            color: #94a3b8;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="text"], select {
+            padding: 14px 18px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            background: rgba(15, 23, 42, 0.6);
+            color: white;
+            font-size: 15px;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+        }
+
+        select option {
+            background: #1e293b;
+            color: white;
+        }
+
+        /* Client Details Card */
+        .client-card {
+            background: rgba(30, 41, 59, 0.6);
+            padding: 35px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            animation: slideUp 0.5s ease;
+        }
+
+        .client-card h3 {
+            font-size: 24px;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(90deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .client-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .detail-item {
+            padding: 15px;
+            background: rgba(15, 23, 42, 0.4);
+            border-radius: 8px;
+            border-left: 3px solid #60a5fa;
+        }
+
+        .detail-item strong {
+            display: block;
+            color: #94a3b8;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
             margin-bottom: 6px;
         }
 
+        .detail-item span {
+            color: #e2e8f0;
+            font-size: 16px;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Charts Section (placeholder) */
+        .charts-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .chart-card {
+            background: rgba(30, 41, 59, 0.6);
+            padding: 25px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-height: 300px;
+        }
+
+        .chart-card h4 {
+            margin-bottom: 20px;
+            color: #94a3b8;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Loading State */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #94a3b8;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid #60a5fa;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Error State */
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        /* Watermark */
+        .watermark {
+            position: fixed;
+            bottom: 20px;
+            right: 30px;
+            font-size: 10px;
+            opacity: 0.15;
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: #60a5fa;
+        }
+
+        @media (max-width: 768px) {
+            .search-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            nav {
+                padding: 15px 20px;
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
     </style>
 </head>
 <body>
 
-<div class="login-overlay" id="loginGate">
-    <div class="login-box">
-        <h2>Comp Sci Final Project</h2>
-        <p>Secure Access Portal</p>
-        <input type="password" id="password" placeholder="Enter Access Code">
-        <button onclick="unlock()">Access Portal</button>
+    <!-- Login Overlay -->
+    <div class="login-overlay" id="loginGate">
+        <div class="login-box">
+            <h2>Client Analytics Portal</h2>
+            <p>Secure Access Required</p>
+            <input type="password" id="password" placeholder="Enter Access Code">
+            <button onclick="unlock()">Access Portal</button>
+        </div>
     </div>
-</div>
 
-<nav>
-    COMP SCI FINAL PROJECT | CLIENT SYSTEM
-    <span>Internal Use Only</span>
-</nav>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-brand">CLIENT ANALYTICS SYSTEM</div>
+        <div class="nav-badge">CONFIDENTIAL</div>
+    </nav>
 
-<div class="container">
+    <!-- Main Container -->
+    <div class="container">
+        
+        <!-- Header -->
+        <div class="header-section">
+            <h1>Client Record Lookup</h1>
+            <p>Search and analyze client data with advanced insights</p>
+        </div>
 
-    <h1>Client Record Lookup</h1>
+        <!-- Search Section -->
+        <div class="search-section">
+            <div class="search-grid">
+                <div class="input-group">
+                    <label>Search Client ID</label>
+                    <input type="text" id="searchInput" placeholder="Type to filter...">
+                </div>
+                <div class="input-group">
+                    <label>Select Client</label>
+                    <select id="clientSelect">
+                        <option value="">-- Select Client --</option>
+                    </select>
+                </div>
+            </div>
+        </div>
 
-    <input type="text" id="searchInput" placeholder="Search Client ID...">
+        <!-- Client Display Area -->
+        <div id="clientDisplay"></div>
 
-    <select id="clientSelect">
-        <option value="">-- Select Client --</option>
-    </select>
+        <!-- Charts Section (ready for your graphs) -->
+        <div id="chartsSection" style="display: none;">
+            <div class="charts-section">
+                <div class="chart-card">
+                    <h4>Client Metrics</h4>
+                    <div id="chart1">Chart placeholder - ready for your data visualization</div>
+                </div>
+                <div class="chart-card">
+                    <h4>Analytics Overview</h4>
+                    <div id="chart2">Chart placeholder - ready for your data visualization</div>
+                </div>
+            </div>
+        </div>
 
-    <div id="clientDisplay"></div>
+    </div>
 
+    <!-- Watermark -->
     <div class="watermark">CONFIDENTIAL</div>
 
-</div>
+    <script>
+        // Unlock function
+        function unlock() {
+            const password = document.getElementById("password").value;
+            if (password === "final2026") {
+                document.getElementById("loginGate").style.display = "none";
+            } else {
+                alert("Invalid Access Code");
+            }
+        }
 
-<script>
-
-function unlock() {
-    const password = document.getElementById("password").value;
-    if (password === "final2026") {
-        document.getElementById("loginGate").style.display = "none";
-    } else {
-        alert("Invalid Access Code");
-    }
-}
-
-fetch("clients.json")
-.then(response => response.json())
-.then(data => {
-
-    const dropdown = document.getElementById("clientSelect");
-    const display = document.getElementById("clientDisplay");
-    const searchInput = document.getElementById("searchInput");
-
-    const firstColumn = Object.keys(data[0])[0];
-
-    function populateDropdown(filteredData) {
-        dropdown.innerHTML = '<option value="">-- Select Client --</option>';
-        filteredData.forEach(client => {
-            const option = document.createElement("option");
-            option.value = client[firstColumn];
-            option.textContent = client[firstColumn];
-            dropdown.appendChild(option);
+        // Allow Enter key on password input
+        document.getElementById("password")?.addEventListener("keypress", function(e) {
+            if (e.key === "Enter") unlock();
         });
-    }
 
-    populateDropdown(data);
+        // JSON Data Loading
+        const display = document.getElementById("clientDisplay");
+        const dropdown = document.getElementById("clientSelect");
+        const searchInput = document.getElementById("searchInput");
 
-    searchInput.addEventListener("input", function() {
-        const filtered = data.filter(client =>
-            String(client[firstColumn]).toLowerCase()
-            .includes(this.value.toLowerCase())
-        );
-        populateDropdown(filtered);
-    });
+        // Show loading state
+        function showLoading() {
+            display.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading client data...</p>
+                </div>
+            `;
+        }
 
-    dropdown.addEventListener("change", function() {
-        const selected = data.find(c => c[firstColumn] == this.value);
-        display.innerHTML = "";
+        // Show error state
+        function showError(message) {
+            display.innerHTML = `
+                <div class="error-message">
+                    <strong>⚠️ Error Loading Data</strong><br>
+                    ${message}<br><br>
+                    <strong>Troubleshooting:</strong><br>
+                    1. Make sure your JSON file is named 'clients.json' and in the same directory<br>
+                    2. If on GitHub, use the raw file URL (e.g., https://raw.githubusercontent.com/username/repo/main/clients.json)<br>
+                    3. Check your browser console (F12) for detailed error messages<br>
+                    4. Ensure your JSON file is valid (test at jsonlint.com)
+                </div>
+            `;
+        }
 
-        if (selected) {
-            const section = document.createElement("div");
-            section.className = "section";
+        // Try multiple data source strategies
+        async function loadClientData() {
+            showLoading();
+
+            // Strategy 1: Try local file first
+            try {
+                const response = await fetch("clients.json");
+                if (response.ok) {
+                    const data = await response.json();
+                    initializeApp(data);
+                    return;
+                }
+            } catch (err) {
+                console.log("Local file not found, trying alternatives...");
+            }
+
+            // Strategy 2: Try GitHub raw URL (you'll need to update this)
+            // Uncomment and update with your actual GitHub URL:
+            /*
+            try {
+                const response = await fetch("https://raw.githubusercontent.com/YOUR-USERNAME/YOUR-REPO/main/clients.json");
+                if (response.ok) {
+                    const data = await response.json();
+                    initializeApp(data);
+                    return;
+                }
+            } catch (err) {
+                console.error("GitHub fetch failed:", err);
+            }
+            */
+
+            // If all strategies fail, show error
+            showError("Could not load clients.json from any source. Please check the troubleshooting steps above.");
+        }
+
+        // Initialize the app with data
+        function initializeApp(data) {
+            if (!data || data.length === 0) {
+                showError("JSON file is empty or invalid.");
+                return;
+            }
+
+            const firstColumn = Object.keys(data[0])[0];
+
+            function populateDropdown(filteredData) {
+                dropdown.innerHTML = '<option value="">-- Select Client --</option>';
+                filteredData.forEach(client => {
+                    const option = document.createElement("option");
+                    option.value = client[firstColumn];
+                    option.textContent = client[firstColumn];
+                    dropdown.appendChild(option);
+                });
+            }
+
+            populateDropdown(data);
+
+            // Search functionality
+            searchInput.addEventListener("input", function() {
+                const filtered = data.filter(client =>
+                    String(client[firstColumn]).toLowerCase()
+                    .includes(this.value.toLowerCase())
+                );
+                populateDropdown(filtered);
+            });
+
+            // Client selection
+            dropdown.addEventListener("change", function() {
+                const selected = data.find(c => c[firstColumn] == this.value);
+                
+                if (selected) {
+                    displayClient(selected);
+                    document.getElementById("chartsSection").style.display = "block";
+                } else {
+                    display.innerHTML = "";
+                    document.getElementById("chartsSection").style.display = "none";
+                }
+            });
+
+            // Clear loading state
+            display.innerHTML = "";
+        }
+
+        // Display client details
+        function displayClient(client) {
+            const card = document.createElement("div");
+            card.className = "client-card";
 
             const header = document.createElement("h3");
             header.textContent = "Client Details";
-            section.appendChild(header);
+            card.appendChild(header);
 
-            for (let key in selected) {
-                const field = document.createElement("div");
-                field.className = "field";
-                field.innerHTML = "<strong>" + key + ":</strong> " + selected[key];
-                section.appendChild(field);
+            const detailsGrid = document.createElement("div");
+            detailsGrid.className = "client-details";
+
+            for (let key in client) {
+                const item = document.createElement("div");
+                item.className = "detail-item";
+                item.innerHTML = `
+                    <strong>${key}</strong>
+                    <span>${client[key]}</span>
+                `;
+                detailsGrid.appendChild(item);
             }
 
-            display.appendChild(section);
-        }
-    });
+            card.appendChild(detailsGrid);
 
-});
-</script>
+            // Action buttons
+            const actions = document.createElement("div");
+            actions.className = "action-buttons";
+            actions.innerHTML = `
+                <button class="btn btn-primary" onclick="exportData()">Export Data</button>
+                <button class="btn btn-secondary" onclick="generateReport()">Generate Report</button>
+                <button class="btn btn-secondary" onclick="viewAnalytics()">View Analytics</button>
+            `;
+            card.appendChild(actions);
+
+            display.innerHTML = "";
+            display.appendChild(card);
+        }
+
+        // Action button functions (ready for your implementation)
+        function exportData() {
+            alert("Export functionality ready to implement!");
+        }
+
+        function generateReport() {
+            alert("Report generation ready to implement!");
+        }
+
+        function viewAnalytics() {
+            alert("Analytics view ready to implement!");
+        }
+
+        // Load data on page load
+        loadClientData();
+    </script>
 
 </body>
 </html>
