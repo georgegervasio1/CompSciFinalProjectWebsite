@@ -606,6 +606,34 @@
         <div id="client-data" class="tab-content active">
             <div class="search-section">
                 <input type="text" class="search-input" id="searchInput" placeholder="Search clients by ID, state, injury type, brand...">
+                
+                <!-- Filter Section -->
+                <div style="margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                    <div>
+                        <label style="font-size: 12px; color: #94a3b8; margin-bottom: 5px; display: block;">Filter by State</label>
+                        <select id="filterState" class="search-input" style="padding: 10px;">
+                            <option value="">All States</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; color: #94a3b8; margin-bottom: 5px; display: block;">Filter by Year</label>
+                        <select id="filterYear" class="search-input" style="padding: 10px;">
+                            <option value="">All Years</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 12px; color: #94a3b8; margin-bottom: 5px; display: block;">Filter by Brand</label>
+                        <select id="filterBrand" class="search-input" style="padding: 10px;">
+                            <option value="">All Brands</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; align-items: flex-end;">
+                        <button onclick="clearFilters()" style="width: 100%; padding: 10px; background: rgba(239, 68, 68, 0.2); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; cursor: pointer; font-weight: 600;">
+                            Clear Filters
+                        </button>
+                    </div>
+                </div>
+                
                 <div class="stats-bar">
                     <div class="stat-item">
                         <div class="stat-label">Total Clients</div>
@@ -677,20 +705,13 @@
 
         // Tab Switching
         function switchTab(tabName) {
-            // Hide all tabs
             document.querySelectorAll('.tab-content').forEach(tab => {
                 tab.classList.remove('active');
             });
-            
-            // Remove active class from all buttons
             document.querySelectorAll('.tab-button').forEach(btn => {
                 btn.classList.remove('active');
             });
-            
-            // Show selected tab
             document.getElementById(tabName).classList.add('active');
-            
-            // Add active class to clicked button
             event.target.classList.add('active');
         }
 
@@ -735,6 +756,106 @@
             return values;
         }
 
+        // Populate filter dropdowns
+        function populateFilters() {
+            // Get unique states
+            const states = [...new Set(clientData.map(c => c['Current Residence State'] || c['State']).filter(Boolean))].sort();
+            const stateSelect = document.getElementById('filterState');
+            states.forEach(state => {
+                const option = document.createElement('option');
+                option.value = state;
+                option.textContent = state;
+                stateSelect.appendChild(option);
+            });
+
+            // Get unique years from Incident Date
+            const years = [...new Set(clientData.map(c => {
+                const date = c['Incident Date'];
+                if (date) {
+                    const match = date.match(/\d{4}/);
+                    return match ? match[0] : null;
+                }
+                return null;
+            }).filter(Boolean))].sort().reverse();
+            
+            const yearSelect = document.getElementById('filterYear');
+            years.forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                yearSelect.appendChild(option);
+            });
+
+            // Get unique brands
+            const brands = new Set();
+            clientData.forEach(c => {
+                const brandField = c['Brand Of Products Used'];
+                if (brandField) {
+                    // Extract brands from brackets format [Brand1, Brand2]
+                    const matches = brandField.match(/\[([^\]]+)\]/);
+                    if (matches) {
+                        matches[1].split(',').forEach(brand => {
+                            brands.add(brand.trim());
+                        });
+                    }
+                }
+            });
+            
+            const brandSelect = document.getElementById('filterBrand');
+            [...brands].sort().forEach(brand => {
+                const option = document.createElement('option');
+                option.value = brand;
+                option.textContent = brand;
+                brandSelect.appendChild(option);
+            });
+        }
+
+        // Apply all filters
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filterState = document.getElementById('filterState').value;
+            const filterYear = document.getElementById('filterYear').value;
+            const filterBrand = document.getElementById('filterBrand').value;
+
+            filteredData = clientData.filter(client => {
+                // Search filter
+                const matchesSearch = !searchTerm || Object.values(client).some(value => 
+                    value && value.toString().toLowerCase().includes(searchTerm)
+                );
+
+                // State filter
+                const clientState = client['Current Residence State'] || client['State'];
+                const matchesState = !filterState || clientState === filterState;
+
+                // Year filter
+                const incidentDate = client['Incident Date'];
+                const matchesYear = !filterYear || (incidentDate && incidentDate.includes(filterYear));
+
+                // Brand filter
+                const brands = client['Brand Of Products Used'];
+                const matchesBrand = !filterBrand || (brands && brands.includes(filterBrand));
+
+                return matchesSearch && matchesState && matchesYear && matchesBrand;
+            });
+
+            displayClients(filteredData);
+            updateStats();
+        }
+
+        // Clear all filters
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('filterState').value = '';
+            document.getElementById('filterYear').value = '';
+            document.getElementById('filterBrand').value = '';
+            applyFilters();
+        }
+
+        // Add event listeners to filters
+        document.getElementById('filterState')?.addEventListener('change', applyFilters);
+        document.getElementById('filterYear')?.addEventListener('change', applyFilters);
+        document.getElementById('filterBrand')?.addEventListener('change', applyFilters);
+
         // Load CSV Data
         async function loadClientData() {
             const display = document.getElementById("clientDisplay");
@@ -746,14 +867,14 @@
             `;
 
             try {
-                // Try to load clients.csv from same directory
-                const response = await fetch('clients.csv');
+                const response = await fetch('http://localhost:5000/clients.csv');
                 if (!response.ok) throw new Error('CSV file not found');
                 
                 const text = await response.text();
                 clientData = parseCSV(text);
                 filteredData = [...clientData];
                 
+                populateFilters();
                 displayClients(filteredData);
                 updateStats();
                 
@@ -762,9 +883,9 @@
                 display.innerHTML = `
                     <div class="error-message">
                         <strong>⚠️ Could not load client data</strong><br><br>
-                        Please make sure <strong>clients.csv</strong> is in the same folder as this HTML file.<br><br>
-                        <strong>Expected format:</strong> CSV file with headers in the first row<br>
-                        <strong>Location:</strong> Same directory as index.html
+                        Make sure the Flask server is running:<br>
+                        <code style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px;">python app.py</code><br><br>
+                        Then refresh this page.
                     </div>
                 `;
             }
@@ -777,7 +898,7 @@
             if (data.length === 0) {
                 display.innerHTML = `
                     <div style="text-align: center; padding: 40px; color: #94a3b8;">
-                        No clients found matching your search.
+                        No clients found matching your filters.
                     </div>
                 `;
                 return;
@@ -850,25 +971,10 @@
         }
 
         // Search Functionality
-        document.getElementById('searchInput')?.addEventListener('input', function(e) {
-            const searchTerm = e.target.value.toLowerCase();
-            
-            if (searchTerm === '') {
-                filteredData = [...clientData];
-            } else {
-                filteredData = clientData.filter(client => {
-                    return Object.values(client).some(value => 
-                        value && value.toString().toLowerCase().includes(searchTerm)
-                    );
-                });
-            }
-            
-            displayClients(filteredData);
-            updateStats();
-        });
+        document.getElementById('searchInput')?.addEventListener('input', applyFilters);
 
-        // Chat Functionality
-        function sendMessage() {
+        // Chat Functionality - CONNECTED TO FLASK BACKEND
+        async function sendMessage() {
             const input = document.getElementById('chatInput');
             const message = input.value.trim();
             
@@ -878,16 +984,45 @@
             addMessage(message, 'user');
             input.value = '';
             
-            // Simulate AI response (you'll replace this with your LLM later)
-            setTimeout(() => {
-                addMessage("I'm ready to analyze your data! In the future, I'll be connected to an LLM to answer your questions about injury patterns, geographic distribution, brand analysis, and more. For now, this is just the interface placeholder.", 'assistant');
-            }, 1000);
+            // Show loading indicator
+            const loadingId = 'loading-' + Date.now();
+            addMessage('<div class="spinner" style="width: 20px; height: 20px; margin: 0;"></div> Analyzing data...', 'assistant', loadingId);
+            
+            try {
+                // Call Flask backend which runs your Python LLM code
+                const response = await fetch('http://localhost:5000/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+                
+                const data = await response.json();
+                
+                // Remove loading message
+                document.getElementById(loadingId)?.remove();
+                
+                if (data.error) {
+                    addMessage('Sorry, there was an error processing your request: ' + data.error, 'assistant');
+                } else {
+                    addMessage(data.response, 'assistant');
+                }
+                
+            } catch (error) {
+                // Remove loading message
+                document.getElementById(loadingId)?.remove();
+                
+                console.error('Chat error:', error);
+                addMessage('Could not connect to the AI service. Make sure the Flask server is running (python app.py)', 'assistant');
+            }
         }
 
-        function addMessage(text, type) {
+        function addMessage(text, type, id = null) {
             const messagesContainer = document.getElementById('chatMessages');
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${type}`;
+            if (id) messageDiv.id = id;
             
             const avatar = type === 'user' ? 'YOU' : 'AI';
             
