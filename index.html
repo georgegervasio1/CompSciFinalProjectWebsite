@@ -1187,7 +1187,6 @@
 
             try {
 
-                #gets the clients.csv file loaded from backend
                 
                 const response = await fetch('https://googlecloudbackendclientdashboard-982863064569.us-east4.run.app/clients.csv');
                 if (!response.ok) throw new Error('CSV file not found');
@@ -1308,7 +1307,6 @@
             
             try {
 
-                #Gets the API chat that the user has typed in
                     
                 const response = await fetch('https://googlecloudbackendclientdashboard-982863064569.us-east4.run.app/api/chat', {
                     method: 'POST',
