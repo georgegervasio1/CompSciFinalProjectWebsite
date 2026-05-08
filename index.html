@@ -897,12 +897,26 @@
         // ── Build client summary for AI endpoints ────────────────────────────
         function buildClientSummary(data) {
             return data.map(c => ({
-                id:          c['Matter Digital Id'] || 'N/A',
-                state:       c['Current Residence State'] || c['State'] || 'N/A',
-                injury:      c['Injury Type'] || 'N/A',
-                brand:       c['Brand Of Products Used'] || 'N/A',
-                date:        c['Incident Date'] || 'N/A',
-                death:       c['Death'] || c['Deceased'] || c['Fatality'] || '',
+                id:                 c['Matter Digital Id'] || 'N/A',
+                state:              c['Current Residence State'] || c['State'] || 'N/A',
+
+                // ── Primary injury fields (actual CSV columns) ──────────────
+                // injury_type: the tagged injury categories used for tier classification
+                // e.g. "[Catastrophic Physical Injury - Paralysis, Neurological Event - Seizure]"
+                injury_type:        c['Injury Type'] || '',
+                injury:             c['Injury Type'] || 'N/A',  // alias kept for display
+
+                // injury_description: the claimant's narrative description of their injury
+                injury_description: c['Injury Description'] || '',
+
+                // alive_deceased: "Alive" | "Deceased" — used to detect wrongful death cases
+                alive_deceased:     c['Alive Or Deceased'] || '',
+
+                brand:              c['Brand Of Products Used'] || 'N/A',
+                date:               c['Incident Date'] || 'N/A',
+
+                // ── Legacy fallback fields (not present in Nitrous Oxide CSV) ──
+                death:       c['Death'] || c['Deceased'] || c['Fatality'] || c['Alive Or Deceased'] || '',
                 hospitalized:c['Hospitalized'] || c['Hospitalization'] || '',
                 disability:  c['Disability'] || c['Long Term Disability'] || '',
             }));
