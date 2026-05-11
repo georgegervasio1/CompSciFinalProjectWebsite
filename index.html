@@ -1111,17 +1111,37 @@
         function renderInjuryChart() {
             const el=document.getElementById('injuryChart');
             if(!clientData.length){el.innerHTML='<div style="text-align:center;padding:30px;color:var(--text-dim);font-size:13px;">No data</div>';return;}
-            // Parse injury types from the bracketed list
             const counts={};
             clientData.forEach(c=>{
                 const raw=c['Injury Type']||'';
-                // Extract tags inside brackets: [Tag1, Tag2, Tag3]
-                const inner=raw.replace(/^\[|\]$/g,'');
-                inner.split(',').map(t=>t.trim()).filter(Boolean).forEach(tag=>{
-                    // Shorten long tag names
-                    let short=tag.replace('Severe Neurological Injury - Permanent / Long Term (minimum of 3 months or more) ','').replace('Neurological Event - ','').replace('Catastrophic Physical Injury - ','').replace('Cardiovascular Event - ','').replace('Other- severe injury requiring hospitalization within 7 days of ingestion of the product (I.e. if more than 7 days passed between last usage and hospitalization, do not select this option)','Acute Hospitalization').replace('severeBurns-PermanentDisfigurementFromBurnsToTheFaceNeckArmsAndorLegs','Severe Burns / Permanent Disfigurement').replace('severeNeurologicalInjury-PermanentNeuropathynumbnessNerveDamageAndorMuscleAtrophyImpactingMotorFunction','Permanent Neuropathy / Nerve Damage').replace('Severe Neurological Injury - Paralysis involving the spinal cord damage, permanent bone spur on cervical spine or and permanent nerve damage due to precipitous B-12 and/or B-12 production/injuries','Spinal / B12 Paralysis');
+                // ── Substitute known multi-comma tags BEFORE splitting so their
+                //    internal commas don't create spurious fragments ────────────
+                let cleaned=raw.replace(/^\[|\]$/g,'');
+                // The "Other- hospitalization" tag contains two commas inside it
+                cleaned=cleaned.replace(
+                    /Other-\s*severe injury requiring hospitalization[^,\]]*\(I\.e\.[^)]*\)/gi,
+                    'Acute Hospitalization'
+                );
+                // Similarly collapse the long spinal/B12 tag
+                cleaned=cleaned.replace(
+                    /Severe Neurological Injury - Paralysis involving the spinal cord[^,\]]*/gi,
+                    'Spinal \/ B12 Paralysis'
+                );
+
+                cleaned.split(',').map(t=>t.trim()).filter(t=>{
+                    // Safety net: drop any fragment that is clearly form UI copy
+                    const low=t.toLowerCase();
+                    return t && !low.includes('do not select') && !low.includes('if more than 7 days');
+                }).forEach(tag=>{
+                    let short=tag
+                        .replace('Severe Neurological Injury - Permanent / Long Term (minimum of 3 months or more) ','')
+                        .replace('Neurological Event - ','')
+                        .replace('Catastrophic Physical Injury - ','')
+                        .replace('Cardiovascular Event - ','')
+                        .replace('severeBurns-PermanentDisfigurementFromBurnsToTheFaceNeckArmsAndorLegs','Severe Burns / Permanent Disfigurement')
+                        .replace('severeNeurologicalInjury-PermanentNeuropathynumbnessNerveDamageAndorMuscleAtrophyImpactingMotorFunction','Permanent Neuropathy / Nerve Damage');
                     short=short.trim();
-                    counts[short]=(counts[short]||0)+1;
+                    if(short) counts[short]=(counts[short]||0)+1;
                 });
             });
             const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,8);
